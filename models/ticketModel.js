@@ -12,22 +12,31 @@ const ticketSchema = new mongoose.Schema(
 			ref: "Event",
 			required: true,
 		},
-		rfid: { type: String, required: true, unique: true },
+		organizerId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User", // Assuming organizer is a User
+			required: true,
+		},
+		rfid: {
+			type: String,
+			required: true,
+			unique: true,
+		},
 		userName: {
-			// ✅ Store user name
 			type: String,
 			required: true,
 		},
 		qrCode: {
-			type: String, // Stores QR code URL
+			type: String,
 		},
 		checkedIn: {
 			type: Boolean,
-			default: false, // Initially, ticket is not checked in
+			default: false,
 		},
+		
 		expired: {
 			type: Boolean,
-			default: false, // Initially not expired
+			default: false,
 		},
 	},
 	{ timestamps: true }
@@ -45,7 +54,6 @@ ticketSchema.pre("save", async function (next) {
 	}
 	next();
 });
-
 
 const Ticket = mongoose.model("Ticket", ticketSchema);
 export default Ticket;

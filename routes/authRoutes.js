@@ -43,7 +43,6 @@ router.get("/me", protect, async (req, res) => {
 
 // Protected Test Route
 router.get("/protected", protect, (req, res) => {
-	console.log("🔹 Middleware Authenticated User:", req.user);
 
 	res.json({ message: "Access granted!", user: req.user });
 });

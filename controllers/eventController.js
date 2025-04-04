@@ -157,9 +157,9 @@ export const updateEvent = async (req, res) => {
 		if (image) {
 			event.image = image; // Store only public_id
 		}
-		console.log("Event before save:", event); // Log event before saving
 
 		await event.save();
+		console.log("Event Saved Successfully");
 		res.json(event);
 	} catch (err) {
 		console.error("Update Event Error:", err);

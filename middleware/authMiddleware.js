@@ -4,9 +4,7 @@ import process from "process";
 
 export const protect = async (req, res, next) => {
 	let token;
-	console.log("Headers received:", req.headers); // Log headers for debugging
-	console.log("Authorization Header:", req.headers.authorization); // Log token header for debugging
-
+	
 	if (
 		req.headers.authorization &&
 		req.headers.authorization.startsWith("Bearer")
@@ -15,7 +13,6 @@ export const protect = async (req, res, next) => {
 			token = req.headers.authorization.split(" ")[1];
 			const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-			console.log("✅ Decoded JWT:", decoded);
 
 			req.user = await User.findById(decoded.id).select("-password");
 
@@ -24,7 +21,6 @@ export const protect = async (req, res, next) => {
 				return res.status(401).json({ message: "User not found" });
 			}
 
-			console.log("✅ Authenticated user:", req.user);
 			next();
 		} catch (error) {
 			console.error("❌ ERROR in Auth Middleware:", error);

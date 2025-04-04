@@ -20,8 +20,7 @@ router.get("/my-tickets", protect, getUserTickets);
 // 🎟 Get all tickets for a specific event
 router.get("/event/:eventId", protect, getEventTickets);
 
-// ✅ Check-in a ticket using its ID
-router.post("/check-in", protect, checkInTicket);
+router.post("/checkInTicket", checkInTicket); // ✅ Match this path exactly
 
 // ❌ Cancel a Ticket
 router.delete("/cancel/:ticketId", protect, cancelTicket);
