@@ -266,7 +266,7 @@ export const verifyTicket = async (req, res) => {
 		res.status(200).json({
 			message: "VERIFIED_SUCCESS",
 			status: "success",
-			ticket,
+			ticket.id
 		});
 	} catch (error) {
 		console.error("🚨 Verify Ticket Error:", error);
