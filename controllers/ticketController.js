@@ -208,7 +208,6 @@ export const checkInTicket = async (req, res) => {
 	}
 };
 
-
 // ✅ Verify Ticket via Ticket ID or RFID — Organizer Only
 export const verifyTicket = async (req, res) => {
 	try {
@@ -226,7 +225,7 @@ export const verifyTicket = async (req, res) => {
 			});
 		}
 
-		// Find the ticket based on input
+		// Find the ticket
 		const ticket = await Ticket.findOne(
 			rfid ? { rfid, eventId } : { _id: ticketId, eventId }
 		);
@@ -244,63 +243,63 @@ export const verifyTicket = async (req, res) => {
 		// 🔐 Only the event organizer can verify
 		if (ticket.organizerId.toString() !== req.user.id) {
 			return res.status(403).json({
-				message:
-					"⛔ Unauthorized. Only the event organizer can verify this ticket.",
+				message: "⛔ Unauthorized. Only the event organizer can verify this ticket.",
 			});
 		}
 
-		// 		// Helper: Convert UTC to IST
-		// const toIST = (date) => {
-		//   const utc = new Date(date);
-		//   const istOffset = 5.5 * 60 * 60 * 1000; // IST = UTC + 5.5 hrs
-		//   return new Date(utc.getTime() + istOffset);
-		// };
-		
-		// // Get current IST time
-		// const nowIST = toIST(Date.now());
-		// // Convert event start & end times to IST
-		// const eventStartIST = toIST(event.startTime);
-		// const eventEndIST = toIST(event.endTime);
-		
-		// // Check: Has the event started?
-		// if (nowIST < eventStartIST) {
-		//   return res.status(400).json({
-		//     message: "⏳ Event has not started yet. You cannot check in.",
-		//   });
-		// }
-		
-		// // Optional: Check if event is already over
-		// if (nowIST > eventEndIST) {
-		//   return res.status(400).json({
-		//     message: "⛔ Event has already ended. You cannot check in.",
-		//   });
-		// }
+		// 🕒 Convert to IST (UTC + 5.5 hrs)
+		const toIST = (date) => {
+			const utc = new Date(date);
+			const istOffset = 5.5 * 60 * 60 * 1000; // milliseconds
+			return new Date(utc.getTime() + istOffset);
+		};
 
+		const nowIST = toIST(Date.now());
+		const eventStartIST = toIST(event.startTime);
+		const eventEndIST = toIST(event.endTime);
 
-		// Check if ticket is already verified - add debugging
-		console.log("Ticket check-in status:", ticket.checkedIn);
-		
+		// ⏳ Has the event started?
+		if (nowIST < eventStartIST) {
+			return res.status(400).json({
+				message: "⏳ Event has not started yet. You cannot check in.",
+			});
+		}
+
+		// ⛔ Event already ended?
+		if (nowIST > eventEndIST) {
+			return res.status(400).json({
+				message: "⛔ Event has already ended. You cannot check in.",
+			});
+		}
+
+		// ✅ Already verified?
 		if (ticket.checkedIn === true) {
-			console.log("Sending 'already verified' response");
 			return res.status(200).json({
-				message: "ALREADY_VERIFIED",  // Use a consistent key that's easier to match
-				status: "already_verified",   // Add an additional field for clarity
-				ticket,
+				message: "ALREADY_VERIFIED",
+				status: "already_verified",
+				ticket: {
+					_id: ticket._id,
+					userName: ticket.userName,
+					checkedIn: ticket.checkedIn,
+					expired: ticket.expired,
+				},
 			});
 		}
 
 		// ✅ Mark as checked in
 		ticket.checkedIn = true;
-
 		await ticket.save();
-		
-		console.log("Ticket verified successfully");
-		
-		// This response is only sent for newly verified tickets
+
+		// Success response
 		res.status(200).json({
-			message: "VERIFIED_SUCCESS",  // Use a consistent key
-			status: "success",            // Add an additional field
-			ticket,
+			message: "VERIFIED_SUCCESS",
+			status: "success",
+			ticket: {
+				_id: ticket._id,
+				userName: ticket.userName,
+				checkedIn: ticket.checkedIn,
+				expired: ticket.expired,
+			},
 		});
 	} catch (error) {
 		console.error("🚨 Verify Ticket Error:", error);
