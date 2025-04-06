@@ -264,6 +264,9 @@ if (now.isAfter(eventEnd)) {
 	});
 }
 
+console.log("NOW:", now.toISOString());
+console.log("EVENT START:", event.startTime.toISOString());
+console.log("EVENT END:", event.endTime.toISOString());
 
 		// ✅ Already checked-in
 		if (ticket.checkedIn) {
