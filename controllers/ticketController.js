@@ -247,16 +247,31 @@ export const verifyTicket = async (req, res) => {
 			});
 		}
 
-		// 🕒 Convert to IST (UTC + 5.5 hrs)
-		const toIST = (date) => {
-			const utc = new Date(date);
-			const istOffset = 5.5 * 60 * 60 * 1000; // milliseconds
-			return new Date(utc.getTime() + istOffset);
-		};
-
-		const nowIST = toIST(Date.now());
-		const eventStartIST = toIST(event.startTime);
-		const eventEndIST = toIST(event.endTime);
+		// Get current time in IST
+		const nowIST = moment().tz("Asia/Kolkata");
+		
+		// Convert event times to IST
+		const eventStartIST = moment(event.startTime).tz("Asia/Kolkata");
+		const eventEndIST = moment(event.endTime).tz("Asia/Kolkata");
+		
+		// Optional: Console log for debugging
+		console.log("📍 Now IST:", nowIST.format());
+		console.log("🕒 Event Start IST:", eventStartIST.format());
+		console.log("🕒 Event End IST:", eventEndIST.format());
+		
+		// ⏳ Has the event started?
+		if (nowIST.isBefore(eventStartIST)) {
+			return res.status(400).json({
+				message: "⏳ Event has not started yet. You cannot check in.",
+			});
+		}
+		
+		// ⛔ Event already ended?
+		if (nowIST.isAfter(eventEndIST)) {
+			return res.status(400).json({
+				message: "⛔ Event has already ended. You cannot check in.",
+			});
+		}
 
 		// ⏳ Has the event started?
 		if (nowIST < eventStartIST) {
