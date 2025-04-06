@@ -223,60 +223,35 @@ export const verifyTicket = async (req, res) => {
 		const { rfid, ticketId, eventId } = req.body;
 
 		if (!rfid && !ticketId) {
-			return res
-				.status(400)
-				.json({ message: "⚠️ Provide either RFID or Ticket ID." });
+			return res.status(400).json({ message: "⚠️ Provide RFID or Ticket ID." });
 		}
-
 		if (!eventId) {
-			return res.status(400).json({
-				message: "⚠️ Event ID is required.",
-			});
+			return res.status(400).json({ message: "⚠️ Event ID required." });
 		}
 
-		// 🔍 Find the ticket based on RFID or ticketId
 		const ticket = await Ticket.findOne(
 			rfid ? { rfid, eventId } : { _id: ticketId, eventId }
 		);
+		if (!ticket) return res.status(404).json({ message: "❌ Ticket not found." });
 
-		if (!ticket) {
-			return res.status(404).json({ message: "❌ Ticket not found." });
-		}
-
-		// 🔍 Find the event
 		const event = await Event.findById(eventId);
-		if (!event) {
-			return res.status(404).json({ message: "❌ Event not found." });
-		}
+		if (!event) return res.status(404).json({ message: "❌ Event not found." });
 
-		// 🔐 Only the event organizer can verify
 		if (ticket.organizerId.toString() !== req.user.id) {
 			return res.status(403).json({
-				message:
-					"⛔ Unauthorized. Only the event organizer can verify this ticket.",
+				message: "⛔ Only the organizer can verify this ticket.",
 			});
 		}
 
 		const timeStatus = validateEventTime(event);
-if (timeStatus === "not_started") {
-	return res.status(400).json({
-		message: "⏳ Event has not started yet. You cannot check in.",
-	});
-}
-if (timeStatus === "expired") {
-	return res.status(400).json({
-		message: "⛔ Ticket expired. The event has already ended.",
-	});
-}
+		if (timeStatus === "not_started") {
+			return res.status(400).json({ message: "⏳ Event has not started yet." });
+		}
+		if (timeStatus === "expired") {
+			return res.status(400).json({ message: "⛔ Event already ended." });
+		}
 
-
-console.log("NOW:", now.toISOString());
-console.log("EVENT START:", event.startTime.toISOString());
-console.log("EVENT END:", event.endTime.toISOString());
-
-		// ✅ Already checked-in
 		if (ticket.checkedIn) {
-			console.log("Sending 'already verified' response");
 			return res.status(200).json({
 				message: "ALREADY_VERIFIED",
 				status: "already_verified",
@@ -284,14 +259,11 @@ console.log("EVENT END:", event.endTime.toISOString());
 			});
 		}
 
-		// ✅ Mark as checked in
 		ticket.checkedIn = true;
-		ticket.checkedInAt = now;
+		ticket.checkedInAt = new Date();
 		await ticket.save();
 
-		console.log("Ticket verified successfully");
-
-		return res.status(200).json({
+		res.status(200).json({
 			message: "VERIFIED_SUCCESS",
 			status: "success",
 			ticket,
@@ -301,6 +273,4 @@ console.log("EVENT END:", event.endTime.toISOString());
 		res.status(500).json({ message: "❌ Internal Server Error." });
 	}
 };
-
-
 
