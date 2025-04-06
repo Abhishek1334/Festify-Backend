@@ -249,18 +249,33 @@ export const verifyTicket = async (req, res) => {
 			});
 		}
 
-		// Time checks
-		const now = new Date();
-		if (now < new Date(event.startTime)) {
-			return res.status(400).json({
-				message: "⏳ Event has not started yet. You cannot check in.",
-			});
+				// Helper: Convert UTC to IST
+		const toIST = (date) => {
+		  const utc = new Date(date);
+		  const istOffset = 5.5 * 60 * 60 * 1000; // IST = UTC + 5.5 hrs
+		  return new Date(utc.getTime() + istOffset);
+		};
+		
+		// Get current IST time
+		const nowIST = toIST(Date.now());
+		// Convert event start & end times to IST
+		const eventStartIST = toIST(event.startTime);
+		const eventEndIST = toIST(event.endTime);
+		
+		// Check: Has the event started?
+		if (nowIST < eventStartIST) {
+		  return res.status(400).json({
+		    message: "⏳ Event has not started yet. You cannot check in.",
+		  });
 		}
-		if (now > new Date(event.endTime)) {
-			return res.status(400).json({
-				message: "⛔ Ticket expired. The event has already ended.",
-			});
+		
+		// Optional: Check if event is already over
+		if (nowIST > eventEndIST) {
+		  return res.status(400).json({
+		    message: "⛔ Event has already ended. You cannot check in.",
+		  });
 		}
+
 
 		// Check if ticket is already verified - add debugging
 		console.log("Ticket check-in status:", ticket.checkedIn);
@@ -276,7 +291,7 @@ export const verifyTicket = async (req, res) => {
 
 		// ✅ Mark as checked in
 		ticket.checkedIn = true;
-		ticket.checkedInAt = now;
+
 		await ticket.save();
 		
 		console.log("Ticket verified successfully");
