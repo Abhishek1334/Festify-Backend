@@ -248,19 +248,22 @@ export const verifyTicket = async (req, res) => {
 		}
 
 		// 🕒 Time checks (same logic as checkInTicket)
-		const now = new Date();
+		const now = moment.tz(moment(), "Asia/Kolkata"); // or your event timezone
+const eventStart = moment(event.startTime);
+const eventEnd = moment(event.endTime);
 
-		if (now < new Date(event.startTime)) {
-			return res.status(400).json({
-				message: "⏳ Event has not started yet. You cannot check in.",
-			});
-		}
+if (now.isBefore(eventStart)) {
+	return res.status(400).json({
+		message: "⏳ Event has not started yet. You cannot check in.",
+	});
+}
 
-		if (now > new Date(event.endTime)) {
-			return res.status(400).json({
-				message: "⛔ Ticket expired. The event has already ended.",
-			});
-		}
+if (now.isAfter(eventEnd)) {
+	return res.status(400).json({
+		message: "⛔ Ticket expired. The event has already ended.",
+	});
+}
+
 
 		// ✅ Already checked-in
 		if (ticket.checkedIn) {
