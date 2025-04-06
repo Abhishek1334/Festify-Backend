@@ -249,32 +249,32 @@ export const verifyTicket = async (req, res) => {
 			});
 		}
 
-				// Helper: Convert UTC to IST
-		const toIST = (date) => {
-		  const utc = new Date(date);
-		  const istOffset = 5.5 * 60 * 60 * 1000; // IST = UTC + 5.5 hrs
-		  return new Date(utc.getTime() + istOffset);
-		};
+		// 		// Helper: Convert UTC to IST
+		// const toIST = (date) => {
+		//   const utc = new Date(date);
+		//   const istOffset = 5.5 * 60 * 60 * 1000; // IST = UTC + 5.5 hrs
+		//   return new Date(utc.getTime() + istOffset);
+		// };
 		
-		// Get current IST time
-		const nowIST = toIST(Date.now());
-		// Convert event start & end times to IST
-		const eventStartIST = toIST(event.startTime);
-		const eventEndIST = toIST(event.endTime);
+		// // Get current IST time
+		// const nowIST = toIST(Date.now());
+		// // Convert event start & end times to IST
+		// const eventStartIST = toIST(event.startTime);
+		// const eventEndIST = toIST(event.endTime);
 		
-		// Check: Has the event started?
-		if (nowIST < eventStartIST) {
-		  return res.status(400).json({
-		    message: "⏳ Event has not started yet. You cannot check in.",
-		  });
-		}
+		// // Check: Has the event started?
+		// if (nowIST < eventStartIST) {
+		//   return res.status(400).json({
+		//     message: "⏳ Event has not started yet. You cannot check in.",
+		//   });
+		// }
 		
-		// Optional: Check if event is already over
-		if (nowIST > eventEndIST) {
-		  return res.status(400).json({
-		    message: "⛔ Event has already ended. You cannot check in.",
-		  });
-		}
+		// // Optional: Check if event is already over
+		// if (nowIST > eventEndIST) {
+		//   return res.status(400).json({
+		//     message: "⛔ Event has already ended. You cannot check in.",
+		//   });
+		// }
 
 
 		// Check if ticket is already verified - add debugging
