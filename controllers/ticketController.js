@@ -18,6 +18,16 @@ const generateRFID = () => {
 
 import QRCode from "qrcode";
 
+const validateEventTime = (event) => {
+	const now = moment();
+	const start = moment(event.startTime);
+	const end = moment(event.endTime);
+
+	if (now.isBefore(start)) return "not_started";
+	if (now.isAfter(end)) return "expired";
+	return "valid";
+};
+
 // 🎟️ Create Ticket & Embed Ticket ID as QR Code
 export const bookTicket = async (req, res) => {
 	try {
@@ -247,22 +257,18 @@ export const verifyTicket = async (req, res) => {
 			});
 		}
 
-		// 🕒 Time checks (same logic as checkInTicket)
-		const now = moment.tz(moment(), "Asia/Kolkata"); // or your event timezone
-const eventStart = moment(event.startTime);
-const eventEnd = moment(event.endTime);
-
-if (now.isBefore(eventStart)) {
+		const timeStatus = validateEventTime(event);
+if (timeStatus === "not_started") {
 	return res.status(400).json({
 		message: "⏳ Event has not started yet. You cannot check in.",
 	});
 }
-
-if (now.isAfter(eventEnd)) {
+if (timeStatus === "expired") {
 	return res.status(400).json({
 		message: "⛔ Ticket expired. The event has already ended.",
 	});
 }
+
 
 console.log("NOW:", now.toISOString());
 console.log("EVENT START:", event.startTime.toISOString());
